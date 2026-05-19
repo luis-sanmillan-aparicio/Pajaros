@@ -2,608 +2,660 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PONG — Adrian vs Luis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>¡Cañón Asesino!</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;900&display=swap');
-
-  :root {
-    --bg: #0a0a0f;
-    --adrian: #00ffcc;
-    --luis: #ff3366;
-    --ball: #ffffff;
-    --dim: rgba(255,255,255,0.08);
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Fredoka+One&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--bg);
-    color: #fff;
-    font-family: 'Share Tech Mono', monospace;
-    height: 100dvh;
-    overflow: hidden;
+    background: #1a0a2e;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-  }
-
-  /* ── PANTALLA DE SELECCIÓN ── */
-  #screen-select {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 40px;
-  }
-
-  #screen-select h1 {
-    font-family: 'Orbitron', monospace;
-    font-weight: 900;
-    font-size: clamp(2rem, 8vw, 4rem);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, var(--adrian), var(--luis));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  #screen-select p {
-    color: rgba(255,255,255,0.4);
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
-  }
-
-  .btn-players {
-    display: flex;
-    gap: 24px;
-  }
-
-  .btn-player {
-    padding: 18px 44px;
-    border: 2px solid;
-    background: transparent;
-    font-family: 'Orbitron', monospace;
-    font-size: 1.1rem;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    position: relative;
+    height: 100vh;
     overflow: hidden;
-  }
-
-  .btn-player::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .btn-player:hover::before { opacity: 0.15; }
-  .btn-player:hover { transform: translateY(-2px); }
-
-  #btn-adrian {
-    border-color: var(--adrian);
-    color: var(--adrian);
-    text-shadow: 0 0 10px var(--adrian);
-    box-shadow: 0 0 20px rgba(0,255,204,0.2);
-  }
-  #btn-adrian::before { background: var(--adrian); }
-  #btn-adrian:hover { box-shadow: 0 0 30px rgba(0,255,204,0.5); }
-
-  #btn-luis {
-    border-color: var(--luis);
-    color: var(--luis);
-    text-shadow: 0 0 10px var(--luis);
-    box-shadow: 0 0 20px rgba(255,51,102,0.2);
-  }
-  #btn-luis::before { background: var(--luis); }
-  #btn-luis:hover { box-shadow: 0 0 30px rgba(255,51,102,0.5); }
-
-  /* ── PANTALLA DE ESPERA ── */
-  #screen-wait {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-    text-align: center;
-  }
-
-  #screen-wait h2 {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.4rem;
-    letter-spacing: 0.15em;
-  }
-
-  .pulse {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: var(--adrian);
-    animation: pulse 1s infinite;
-    margin: 0 auto;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.3; transform: scale(0.6); }
-  }
-
-  /* ── PANTALLA DE JUEGO ── */
-  #screen-game {
-    display: none;
-    flex-direction: column;
-    width: 100%;
-    height: 100dvh;
-    position: relative;
-  }
-
-  #hud {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    flex-shrink: 0;
-  }
-
-  .hud-name { font-weight: 900; font-size: 0.85rem; }
-  .hud-score { font-size: 2rem; font-weight: 900; }
-  #hud-top { color: var(--luis); }
-  #hud-bottom { color: var(--adrian); }
-  #hud-center { color: rgba(255,255,255,0.3); font-size: 0.7rem; }
-
-  canvas {
-    flex: 1;
-    display: block;
-    width: 100%;
+    font-family: 'Fredoka One', cursive;
     touch-action: none;
   }
 
-  /* ── PANTALLA FIN ── */
-  #screen-end {
-    display: none;
+  #game-wrapper {
+    position: relative;
+    width: 400px;
+    height: 700px;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+
+  #sky {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #0d0d2b 0%, #1a1a4e 40%, #2d1b4e 70%, #3d1230 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid #4a2080;
+  }
+
+  /* Stars */
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 2s infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.3; }
+    to { opacity: 1; }
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+  }
+
+  /* HUD */
+  #hud {
+    position: absolute;
+    top: 12px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-box {
+    background: rgba(0,0,0,0.5);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 4px 12px;
+    color: white;
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+
+  .hud-box span {
+    color: #f9c74f;
+  }
+
+  .lives-box span.lost {
+    opacity: 0.2;
+  }
+
+  /* Fire button */
+  #fire-btn {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    letter-spacing: 2px;
+    padding: 14px 40px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255,60,60,0.6), 0 4px 0 #880000;
+    transition: transform 0.08s, box-shadow 0.08s;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  #fire-btn:active {
+    transform: translateX(-50%) translateY(3px);
+    box-shadow: 0 0 10px rgba(255,60,60,0.4), 0 1px 0 #880000;
+  }
+
+  /* Overlay screens */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 28px;
+    justify-content: center;
+    background: rgba(0,0,0,0.82);
+    border-radius: 14px;
+    z-index: 30;
+    gap: 18px;
+  }
+
+  .overlay h1 {
+    font-family: 'Boogaloo', cursive;
+    font-size: 52px;
+    color: #f9c74f;
+    text-shadow: 0 0 20px rgba(249,199,79,0.8);
     text-align: center;
+    line-height: 1;
   }
 
-  #screen-end h2 {
-    font-family: 'Orbitron', monospace;
-    font-weight: 900;
-    font-size: clamp(1.5rem, 6vw, 3rem);
-    letter-spacing: 0.2em;
+  .overlay p {
+    color: #ccc;
+    font-size: 18px;
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.4;
   }
 
-  #btn-restart {
-    padding: 14px 36px;
-    border: 2px solid rgba(255,255,255,0.4);
-    background: transparent;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.9rem;
-    letter-spacing: 0.15em;
-    color: #fff;
+  .overlay .score-big {
+    font-size: 64px;
+    color: #90e0ef;
+    text-shadow: 0 0 20px rgba(144,224,239,0.8);
+  }
+
+  .overlay button {
+    background: linear-gradient(135deg, #43aa8b, #2d7a62);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    padding: 12px 36px;
     cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.2s;
+    box-shadow: 0 0 15px rgba(67,170,139,0.5), 0 4px 0 #1a4a3a;
+    transition: transform 0.08s;
   }
-  #btn-restart:hover {
-    background: rgba(255,255,255,0.1);
-    border-color: #fff;
-  }
+  .overlay button:active { transform: translateY(3px); }
 
-  /* línea central */
-  .center-line {
+  #drag-hint {
     position: absolute;
-    left: 0; right: 0;
-    top: 50%;
-    height: 1px;
-    background: repeating-linear-gradient(90deg,
-      rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 8px,
-      transparent 8px, transparent 18px);
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.35);
+    font-size: 12px;
+    letter-spacing: 1px;
+    z-index: 10;
     pointer-events: none;
+    white-space: nowrap;
   }
 </style>
 </head>
 <body>
 
-<!-- SELECCIÓN -->
-<div id="screen-select">
-  <h1>PONG</h1>
-  <p>¿QUIÉN ERES?</p>
-  <div class="btn-players">
-    <button class="btn-player" id="btn-adrian">ADRIAN</button>
-    <button class="btn-player" id="btn-luis">LUIS</button>
-  </div>
-</div>
+<div id="game-wrapper">
+  <div id="sky" id="sky-bg"></div>
+  <canvas id="gameCanvas"></canvas>
 
-<!-- ESPERA -->
-<div id="screen-wait">
-  <h2 id="wait-msg">ESPERANDO AL RIVAL...</h2>
-  <div class="pulse" id="wait-dot"></div>
-  <p style="color:rgba(255,255,255,0.3);font-size:0.8rem">Pide al otro jugador que abra esta misma web</p>
-</div>
-
-<!-- JUEGO -->
-<div id="screen-game">
   <div id="hud">
-    <div id="hud-top">
-      <div class="hud-name" id="hud-top-name">LUIS</div>
-      <div class="hud-score" id="score-top">0</div>
-    </div>
-    <div id="hud-center">VS</div>
-    <div id="hud-bottom" style="text-align:right">
-      <div class="hud-name" id="hud-bottom-name">ADRIAN</div>
-      <div class="hud-score" id="score-bottom">0</div>
-    </div>
+    <div class="hud-box">🏆 <span id="score-display">0</span></div>
+    <div class="hud-box lives-box">❤️ <span id="lives-display">🐦🐦🐦🐦🐦</span></div>
   </div>
-  <div style="position:relative;flex:1;display:flex;">
-    <div class="center-line"></div>
-    <canvas id="canvas"></canvas>
+
+  <div id="drag-hint">⟵ arrastra para girar ⟶</div>
+
+  <button id="fire-btn">💥 DISPARAR</button>
+
+  <!-- Start screen -->
+  <div class="overlay" id="start-screen">
+    <h1>🐦 CAÑÓN<br>ASESINO</h1>
+    <p>Arrastra para apuntar.<br>Pulsa DISPARAR para eliminar los pájaros.<br>¡No dejes pasar más de 5!</p>
+    <button id="start-btn">¡JUGAR!</button>
+  </div>
+
+  <!-- Game over screen -->
+  <div class="overlay" id="gameover-screen" style="display:none">
+    <h1>💀 FIN</h1>
+    <p>Puntuación final:</p>
+    <div class="score-big" id="final-score">0</div>
+    <button id="restart-btn">🔄 Reintentar</button>
   </div>
 </div>
-
-<!-- FIN -->
-<div id="screen-end">
-  <h2 id="end-msg">¡ADRIAN GANA!</h2>
-  <button id="btn-restart">JUGAR DE NUEVO</button>
-</div>
-
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────
-const SUPABASE_URL = 'https://rxbwfozedqipwvfhuzby.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_2G53T3tdGzdFVFYmdahPDw_65nxBsb-';
-const CHANNEL_NAME = 'pong-game-v1';
-const PADDLE_W_RATIO = 0.22;   // ancho paleta relativo al canvas
-const PADDLE_H = 10;
-const BALL_R = 8;
-const SCORE_WIN = 5;
-const PADDLE_MARGIN = 30;
-const SPEED_INCREMENT = 0.08;  // aceleración por segundo
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const wrapper = document.getElementById('game-wrapper');
 
-// ── ESTADO ──────────────────────────────────────────────
-let myRole = null;        // 'adrian' | 'luis'
-let isHost = false;       // adrian es host (calcula física)
-let channel = null;
-let rivalConnected = false;
+// Resize canvas to wrapper
+function resizeCanvas() {
+  canvas.width = wrapper.clientWidth;
+  canvas.height = wrapper.clientHeight;
+}
+resizeCanvas();
 
-let scoreAdrian = 0;
-let scoreLuis = 0;
+// --- GAME STATE ---
+let state = {
+  running: false,
+  score: 0,
+  escaped: 0, // birds that reached bottom
+  cannonAngle: -Math.PI / 2, // pointing up
+  birds: [],
+  projectiles: [],
+  particles: [],
+  birdSpawnTimer: 0,
+  birdSpawnInterval: 120, // frames
+  frameCount: 0,
+};
 
-// Posiciones normalizadas 0..1
-let paddleAdrian = 0.5;
-let paddleLuis   = 0.5;
+// --- STARS ---
+const stars = [];
+function generateStars() {
+  for (let i = 0; i < 60; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height * 0.7,
+      r: Math.random() * 1.5 + 0.3,
+      twinkle: Math.random() * Math.PI * 2,
+    });
+  }
+}
 
-let ball = { x: 0.5, y: 0.5, vx: 0, vy: 0 };
-let gameRunning = false;
-let lastTime = null;
-let totalTime = 0;
+// --- CANNON ---
+const CANNON_X = () => canvas.width / 2;
+const CANNON_Y = () => canvas.height - 100;
+const CANNON_LENGTH = 44;
+const CANNON_WIDTH = 16;
 
-// Drag
-let dragging = false;
-let dragStartX = 0;
-let dragStartPaddle = 0;
+function drawCannon() {
+  const cx = CANNON_X(), cy = CANNON_Y();
+  ctx.save();
+  ctx.translate(cx, cy);
 
-// ── SUPABASE ─────────────────────────────────────────────
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // Base wheel
+  ctx.beginPath();
+  ctx.arc(0, 0, 26, 0, Math.PI * 2);
+  ctx.fillStyle = '#6b4226';
+  ctx.fill();
+  ctx.strokeStyle = '#3d2010';
+  ctx.lineWidth = 3;
+  ctx.stroke();
 
-function initChannel() {
-  channel = sb.channel(CHANNEL_NAME, {
-    config: { broadcast: { self: false } }
+  // Wheel spokes
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(a) * 22, Math.sin(a) * 22);
+    ctx.strokeStyle = '#3d2010';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Cannon barrel
+  ctx.rotate(state.cannonAngle + Math.PI / 2);
+  ctx.beginPath();
+  ctx.roundRect(-CANNON_WIDTH / 2, -CANNON_LENGTH, CANNON_WIDTH, CANNON_LENGTH, 4);
+  ctx.fillStyle = '#555';
+  ctx.fill();
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Barrel shine
+  ctx.beginPath();
+  ctx.roundRect(-CANNON_WIDTH / 2 + 2, -CANNON_LENGTH + 4, 4, CANNON_LENGTH - 8, 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// --- BIRDS ---
+const BIRD_COLORS = ['#ff9f1c', '#e63946', '#a8dadc', '#06d6a0', '#f72585'];
+
+function spawnBird() {
+  const x = 30 + Math.random() * (canvas.width - 60);
+  state.birds.push({
+    x,
+    y: -20,
+    vx: (Math.random() - 0.5) * 1.2,
+    vy: 1.2 + Math.random() * 1.5,
+    color: BIRD_COLORS[Math.floor(Math.random() * BIRD_COLORS.length)],
+    wingPhase: Math.random() * Math.PI * 2,
+    size: 14 + Math.random() * 8,
+    alive: true,
   });
+}
 
-  channel
-    .on('broadcast', { event: 'presence' }, ({ payload }) => {
-      if (payload.role !== myRole) {
-        rivalConnected = true;
-        onRivalJoined();
-      }
-    })
-    .on('broadcast', { event: 'paddle' }, ({ payload }) => {
-      if (payload.role === 'adrian') paddleAdrian = payload.x;
-      else paddleLuis = payload.x;
-    })
-    .on('broadcast', { event: 'ball' }, ({ payload }) => {
-      if (!isHost) {
-        ball.x = payload.x;
-        ball.y = payload.y;
-      }
-    })
-    .on('broadcast', { event: 'score' }, ({ payload }) => {
-      scoreAdrian = payload.adrian;
-      scoreLuis   = payload.luis;
-      updateScoreUI();
-      if (!isHost) resetBallLocal();
-      if (payload.adrian >= SCORE_WIN || payload.luis >= SCORE_WIN) endGame();
-    })
-    .on('broadcast', { event: 'reset' }, () => {
-      if (!isHost) resetBallLocal();
-    })
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        // Anunciar presencia
-        channel.send({ type: 'broadcast', event: 'presence', payload: { role: myRole } });
+function drawBird(b) {
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  const wing = Math.sin(b.wingPhase) * 0.4;
+
+  // Body
+  ctx.beginPath();
+  ctx.ellipse(0, 0, b.size * 0.7, b.size * 0.45, 0, 0, Math.PI * 2);
+  ctx.fillStyle = b.color;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Left wing
+  ctx.save();
+  ctx.rotate(-wing);
+  ctx.beginPath();
+  ctx.ellipse(-b.size * 0.6, -b.size * 0.1, b.size * 0.55, b.size * 0.22, -0.3, 0, Math.PI * 2);
+  ctx.fillStyle = b.color;
+  ctx.fill();
+  ctx.restore();
+
+  // Right wing
+  ctx.save();
+  ctx.rotate(wing);
+  ctx.beginPath();
+  ctx.ellipse(b.size * 0.6, -b.size * 0.1, b.size * 0.55, b.size * 0.22, 0.3, 0, Math.PI * 2);
+  ctx.fillStyle = b.color;
+  ctx.fill();
+  ctx.restore();
+
+  // Eye
+  ctx.beginPath();
+  ctx.arc(b.size * 0.35, -b.size * 0.05, 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(b.size * 0.38, -b.size * 0.05, 1.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+
+  // Beak
+  ctx.beginPath();
+  ctx.moveTo(b.size * 0.65, b.size * 0.05);
+  ctx.lineTo(b.size * 0.9, b.size * 0.15);
+  ctx.lineTo(b.size * 0.65, b.size * 0.2);
+  ctx.fillStyle = '#f4a261';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// --- PROJECTILES ---
+function fireProjectile() {
+  const cx = CANNON_X(), cy = CANNON_Y();
+  const speed = 12;
+  state.projectiles.push({
+    x: cx + Math.cos(state.cannonAngle) * CANNON_LENGTH,
+    y: cy + Math.sin(state.cannonAngle) * CANNON_LENGTH,
+    vx: Math.cos(state.cannonAngle) * speed,
+    vy: Math.sin(state.cannonAngle) * speed,
+    trail: [],
+    alive: true,
+  });
+  // Muzzle flash particles
+  for (let i = 0; i < 12; i++) {
+    const a = state.cannonAngle + (Math.random() - 0.5) * 0.8;
+    const sp = 2 + Math.random() * 5;
+    state.particles.push({
+      x: cx + Math.cos(state.cannonAngle) * CANNON_LENGTH,
+      y: cy + Math.sin(state.cannonAngle) * CANNON_LENGTH,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      life: 1,
+      decay: 0.08 + Math.random() * 0.08,
+      color: Math.random() > 0.5 ? '#f9c74f' : '#ff6b35',
+      size: 2 + Math.random() * 4,
+    });
+  }
+}
+
+function drawProjectile(p) {
+  // Trail
+  for (let i = 0; i < p.trail.length; i++) {
+    const t = p.trail[i];
+    const alpha = (i / p.trail.length) * 0.5;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, 3 * (i / p.trail.length), 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(249,199,79,${alpha})`;
+    ctx.fill();
+  }
+  // Ball
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#333';
+  ctx.fill();
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+// --- PARTICLES ---
+function spawnExplosion(x, y, color) {
+  for (let i = 0; i < 22; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 1.5 + Math.random() * 6;
+    state.particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      life: 1,
+      decay: 0.03 + Math.random() * 0.05,
+      color,
+      size: 3 + Math.random() * 6,
+    });
+  }
+  // Feather effect
+  for (let i = 0; i < 8; i++) {
+    const a = Math.random() * Math.PI * 2;
+    state.particles.push({
+      x, y,
+      vx: Math.cos(a) * (1 + Math.random() * 3),
+      vy: Math.sin(a) * (1 + Math.random() * 3) + 1,
+      life: 1,
+      decay: 0.02,
+      color: 'white',
+      size: 1 + Math.random() * 3,
+      isFeather: true,
+    });
+  }
+}
+
+function drawParticles() {
+  state.particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = p.life;
+    ctx.beginPath();
+    if (p.isFeather) {
+      ctx.ellipse(p.x, p.y, p.size * 2, p.size * 0.5, Math.atan2(p.vy, p.vx), 0, Math.PI * 2);
+    } else {
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    }
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+// --- COLLISION ---
+function checkCollisions() {
+  state.projectiles.forEach(proj => {
+    if (!proj.alive) return;
+    state.birds.forEach(bird => {
+      if (!bird.alive) return;
+      const dx = proj.x - bird.x;
+      const dy = proj.y - bird.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < bird.size + 6) {
+        proj.alive = false;
+        bird.alive = false;
+        state.score++;
+        document.getElementById('score-display').textContent = state.score;
+        spawnExplosion(bird.x, bird.y, bird.color);
       }
     });
-}
-
-function sendPaddle(x) {
-  channel.send({ type: 'broadcast', event: 'paddle', payload: { role: myRole, x } });
-}
-
-function sendBall() {
-  channel.send({ type: 'broadcast', event: 'ball', payload: { x: ball.x, y: ball.y } });
-}
-
-function sendScore() {
-  channel.send({ type: 'broadcast', event: 'score',
-    payload: { adrian: scoreAdrian, luis: scoreLuis } });
-}
-
-// ── UI ───────────────────────────────────────────────────
-function show(id) {
-  ['screen-select','screen-wait','screen-game','screen-end'].forEach(s => {
-    document.getElementById(s).style.display = 'none';
   });
-  document.getElementById(id).style.display = 'flex';
 }
 
-function choosePlayer(role) {
-  myRole = role;
-  isHost = (role === 'adrian');
+// --- UPDATE ---
+function update() {
+  state.frameCount++;
+  state.birdSpawnTimer++;
 
-  // Orientar HUD según quién soy
-  if (myRole === 'adrian') {
-    document.getElementById('hud-bottom-name').textContent = 'TÚ (ADRIAN)';
-    document.getElementById('hud-top-name').textContent    = 'LUIS';
-  } else {
-    document.getElementById('hud-bottom-name').textContent = 'TÚ (LUIS)';
-    document.getElementById('hud-top-name').textContent    = 'ADRIAN';
+  // Increase difficulty
+  const interval = Math.max(50, 120 - Math.floor(state.score / 5) * 8);
+  if (state.birdSpawnTimer >= interval) {
+    spawnBird();
+    state.birdSpawnTimer = 0;
   }
 
-  show('screen-wait');
-  initChannel();
-}
+  // Update birds
+  state.birds.forEach(b => {
+    if (!b.alive) return;
+    b.x += b.vx;
+    b.y += b.vy;
+    b.wingPhase += 0.15;
+    // Bounce on sides
+    if (b.x < 10 || b.x > canvas.width - 10) b.vx *= -1;
+  });
 
-function onRivalJoined() {
-  show('screen-game');
-  resizeCanvas();
-  if (isHost) {
-    setTimeout(() => {
-      resetBallLocal();
-      gameRunning = true;
-      lastTime = performance.now();
-      requestAnimationFrame(loop);
-    }, 800);
-  } else {
-    gameRunning = true;
-    lastTime = performance.now();
-    requestAnimationFrame(loop);
-  }
-}
-
-function updateScoreUI() {
-  if (myRole === 'adrian') {
-    document.getElementById('score-bottom').textContent = scoreAdrian;
-    document.getElementById('score-top').textContent    = scoreLuis;
-  } else {
-    document.getElementById('score-bottom').textContent = scoreLuis;
-    document.getElementById('score-top').textContent    = scoreAdrian;
-  }
-}
-
-// ── CANVAS ───────────────────────────────────────────────
-const canvas = document.getElementById('canvas');
-const ctx    = canvas.getContext('2d');
-
-function resizeCanvas() {
-  canvas.width  = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-
-// ── FÍSICA (solo host = Adrian) ──────────────────────────
-function resetBallLocal() {
-  ball.x = 0.5;
-  ball.y = 0.5;
-  totalTime = 0;
-  if (isHost) {
-    const angle = (Math.random() * 60 - 30) * Math.PI / 180;
-    const dir   = Math.random() < 0.5 ? 1 : -1;
-    const speed = 0.35; // unidades/segundo normalizadas
-    ball.vx = Math.sin(angle) * speed;
-    ball.vy = Math.cos(angle) * speed * dir;
-    sendBall();
-    channel.send({ type: 'broadcast', event: 'reset', payload: {} });
-  }
-}
-
-function physicsStep(dt) {
-  if (!isHost || !gameRunning) return;
-
-  totalTime += dt;
-  // Aceleración gradual
-  const speedMult = 1 + totalTime * SPEED_INCREMENT;
-
-  ball.x += ball.vx * dt * speedMult;
-  ball.y += ball.vy * dt * speedMult;
-
-  const W = canvas.width;
-  const H = canvas.height;
-  const br = BALL_R / W; // radio normalizado en X
-  const brY = BALL_R / H;
-
-  // Rebote paredes laterales
-  if (ball.x - br < 0) { ball.x = br; ball.vx = Math.abs(ball.vx); }
-  if (ball.x + br > 1) { ball.x = 1 - br; ball.vx = -Math.abs(ball.vx); }
-
-  // Paleta arriba (Luis, y~0)
-  const pw = PADDLE_W_RATIO / 2;
-  const topY    = (PADDLE_MARGIN + PADDLE_H) / H;
-  const bottomY = 1 - (PADDLE_MARGIN + PADDLE_H) / H;
-
-  // Colisión paleta superior (Luis)
-  if (ball.vy < 0 && ball.y - brY < topY) {
-    if (Math.abs(ball.x - paddleLuis) < pw) {
-      ball.y = topY + brY;
-      ball.vy = Math.abs(ball.vy);
-      // Añadir algo de efecto según dónde golpea
-      const offset = (ball.x - paddleLuis) / pw;
-      ball.vx += offset * 0.1;
-    } else {
-      // Punto para Adrian
-      scoreAdrian++;
-      updateScoreUI();
-      sendScore();
-      if (scoreAdrian < SCORE_WIN) resetBallLocal();
-      else { endGame(); return; }
+  // Birds reaching bottom
+  state.birds.forEach(b => {
+    if (b.alive && b.y > canvas.height - 60) {
+      b.alive = false;
+      state.escaped++;
+      updateLives();
+      if (state.escaped >= 5) {
+        endGame();
+      }
     }
-  }
+  });
 
-  // Colisión paleta inferior (Adrian)
-  if (ball.vy > 0 && ball.y + brY > bottomY) {
-    if (Math.abs(ball.x - paddleAdrian) < pw) {
-      ball.y = bottomY - brY;
-      ball.vy = -Math.abs(ball.vy);
-      const offset = (ball.x - paddleAdrian) / pw;
-      ball.vx += offset * 0.1;
-    } else {
-      // Punto para Luis
-      scoreLuis++;
-      updateScoreUI();
-      sendScore();
-      if (scoreLuis < SCORE_WIN) resetBallLocal();
-      else { endGame(); return; }
+  // Update projectiles
+  state.projectiles.forEach(p => {
+    if (!p.alive) return;
+    p.trail.push({ x: p.x, y: p.y });
+    if (p.trail.length > 10) p.trail.shift();
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15; // slight gravity
+    if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+      p.alive = false;
     }
-  }
+  });
 
-  sendBall();
+  // Collisions
+  checkCollisions();
+
+  // Particles
+  state.particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.1;
+    p.vx *= 0.97;
+    p.life -= p.decay;
+  });
+
+  // Cleanup
+  state.birds = state.birds.filter(b => b.alive);
+  state.projectiles = state.projectiles.filter(p => p.alive);
+  state.particles = state.particles.filter(p => p.life > 0);
 }
 
-// ── RENDER ───────────────────────────────────────────────
-function render() {
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
+// --- DRAW ---
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const pw = PADDLE_W_RATIO * W;
+  // Stars
+  stars.forEach(s => {
+    s.twinkle += 0.03;
+    const alpha = 0.4 + Math.sin(s.twinkle) * 0.4;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+  });
 
-  // Paleta arriba
-  // Si soy Adrian: arriba es Luis (color luis)
-  // Si soy Luis: arriba es Adrian (color adrian)
-  const topColor    = myRole === 'adrian' ? getComputedStyle(document.documentElement).getPropertyValue('--luis').trim()   : getComputedStyle(document.documentElement).getPropertyValue('--adrian').trim();
-  const bottomColor = myRole === 'adrian' ? getComputedStyle(document.documentElement).getPropertyValue('--adrian').trim() : getComputedStyle(document.documentElement).getPropertyValue('--luis').trim();
-
-  // Posición de la paleta rival arriba y la mía abajo
-  const topPaddleX    = myRole === 'adrian' ? paddleLuis   : paddleAdrian;
-  const bottomPaddleX = myRole === 'adrian' ? paddleAdrian : paddleLuis;
-
-  // Paleta arriba (rival)
-  ctx.fillStyle = topColor;
-  ctx.shadowColor = topColor;
-  ctx.shadowBlur = 12;
+  // Ground line
   ctx.beginPath();
-  ctx.roundRect(topPaddleX * W - pw/2, PADDLE_MARGIN, pw, PADDLE_H, 5);
-  ctx.fill();
+  ctx.moveTo(0, canvas.height - 60);
+  ctx.lineTo(canvas.width, canvas.height - 60);
+  ctx.strokeStyle = 'rgba(255,80,80,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([8, 6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
-  // Paleta abajo (yo)
-  ctx.fillStyle = bottomColor;
-  ctx.shadowColor = bottomColor;
-  ctx.shadowBlur = 18;
-  ctx.beginPath();
-  ctx.roundRect(bottomPaddleX * W - pw/2, H - PADDLE_MARGIN - PADDLE_H, pw, PADDLE_H, 5);
-  ctx.fill();
+  // Danger zone label
+  ctx.fillStyle = 'rgba(255,80,80,0.25)';
+  ctx.font = '10px Fredoka One';
+  ctx.fillText('⚠ ZONA PELIGRO', 8, canvas.height - 65);
 
-  // Bola
-  // Invertir Y si soy Luis (porque veo el campo al revés)
-  const ballScreenX = ball.x * W;
-  const ballScreenY = myRole === 'luis' ? (1 - ball.y) * H : ball.y * H;
+  drawParticles();
 
-  ctx.fillStyle = '#fff';
-  ctx.shadowColor = '#fff';
-  ctx.shadowBlur = 20;
-  ctx.beginPath();
-  ctx.arc(ballScreenX, ballScreenY, BALL_R, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.shadowBlur = 0;
+  state.birds.forEach(b => drawBird(b));
+  state.projectiles.forEach(p => drawProjectile(p));
+  drawCannon();
 }
 
-// ── LOOP ─────────────────────────────────────────────────
-function loop(now) {
-  if (!gameRunning) return;
-  const dt = Math.min((now - lastTime) / 1000, 0.05);
-  lastTime = now;
-  physicsStep(dt);
-  render();
-  requestAnimationFrame(loop);
+// --- GAME LOOP ---
+function gameLoop() {
+  if (!state.running) return;
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
 }
 
-// ── FIN ──────────────────────────────────────────────────
-function endGame() {
-  gameRunning = false;
-  const winner = scoreAdrian >= SCORE_WIN ? 'ADRIAN' : 'LUIS';
-  document.getElementById('end-msg').textContent = `¡${winner} GANA!`;
-  document.getElementById('end-msg').style.color =
-    winner === 'ADRIAN' ? 'var(--adrian)' : 'var(--luis)';
-  show('screen-end');
-}
-
-// ── CONTROLES ────────────────────────────────────────────
-function getCanvasX(e) {
-  const rect = canvas.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  return (clientX - rect.left) / rect.width;
-}
+// --- CONTROLS ---
+let dragStartX = null;
+let lastAngle = -Math.PI / 2;
 
 canvas.addEventListener('pointerdown', e => {
-  dragging = true;
-  dragStartX = getCanvasX(e);
-  dragStartPaddle = myRole === 'adrian' ? paddleAdrian : paddleLuis;
-  canvas.setPointerCapture(e.pointerId);
+  dragStartX = e.clientX;
+  lastAngle = state.cannonAngle;
 });
-
 canvas.addEventListener('pointermove', e => {
-  if (!dragging) return;
-  const dx = getCanvasX(e) - dragStartX;
-  let newX = Math.max(PADDLE_W_RATIO/2, Math.min(1 - PADDLE_W_RATIO/2, dragStartPaddle + dx));
-  if (myRole === 'adrian') paddleAdrian = newX;
-  else paddleLuis = newX;
-  sendPaddle(newX);
+  if (dragStartX === null) return;
+  const dx = e.clientX - dragStartX;
+  state.cannonAngle = Math.max(-Math.PI + 0.1, Math.min(-0.1, lastAngle + dx * 0.012));
+});
+canvas.addEventListener('pointerup', () => { dragStartX = null; });
+
+document.getElementById('fire-btn').addEventListener('click', () => {
+  if (state.running) fireProjectile();
 });
 
-canvas.addEventListener('pointerup',   () => dragging = false);
-canvas.addEventListener('pointercancel',() => dragging = false);
+// Touch fire button
+document.getElementById('fire-btn').addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (state.running) fireProjectile();
+}, { passive: false });
 
-// ── BOTONES ──────────────────────────────────────────────
-document.getElementById('btn-adrian').addEventListener('click', () => choosePlayer('adrian'));
-document.getElementById('btn-luis').addEventListener('click',   () => choosePlayer('luis'));
+// --- UI ---
+function updateLives() {
+  const full = '🐦'.repeat(Math.max(0, 5 - state.escaped));
+  const empty = '💀'.repeat(state.escaped);
+  document.getElementById('lives-display').textContent = full + empty;
+}
 
-document.getElementById('btn-restart').addEventListener('click', () => {
-  scoreAdrian = 0; scoreLuis = 0;
-  updateScoreUI();
-  show('screen-game');
-  if (isHost) {
-    setTimeout(() => {
-      resetBallLocal();
-      gameRunning = true;
-      lastTime = performance.now();
-      requestAnimationFrame(loop);
-    }, 300);
-  } else {
-    gameRunning = true;
-    lastTime = performance.now();
-    requestAnimationFrame(loop);
-  }
-});
+function startGame() {
+  state = {
+    running: true,
+    score: 0,
+    escaped: 0,
+    cannonAngle: -Math.PI / 2,
+    birds: [],
+    projectiles: [],
+    particles: [],
+    birdSpawnTimer: 0,
+    frameCount: 0,
+  };
+  document.getElementById('score-display').textContent = '0';
+  updateLives();
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('gameover-screen').style.display = 'none';
+  generateStars();
+  gameLoop();
+}
+
+function endGame() {
+  state.running = false;
+  document.getElementById('final-score').textContent = state.score;
+  document.getElementById('gameover-screen').style.display = 'flex';
+}
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('restart-btn').addEventListener('click', startGame);
 </script>
 </body>
 </html>
+
