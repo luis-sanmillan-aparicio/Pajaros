@@ -56,6 +56,11 @@
     width: 100%;
     height: 100%;
     border-radius: 14px;
+    cursor: grab;
+    touch-action: none;
+  }
+  canvas:active {
+    cursor: grabbing;
   }
 
   /* HUD */
@@ -89,30 +94,21 @@
     opacity: 0.2;
   }
 
-  /* Fire button */
-  #fire-btn {
+  #drag-hint {
     position: absolute;
-    bottom: 18px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 20;
-    background: linear-gradient(135deg, #ff4444, #cc0000);
-    border: none;
-    border-radius: 50px;
-    color: white;
-    font-family: 'Fredoka One', cursive;
-    font-size: 22px;
-    letter-spacing: 2px;
-    padding: 14px 40px;
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(255,60,60,0.6), 0 4px 0 #880000;
-    transition: transform 0.08s, box-shadow 0.08s;
-    touch-action: manipulation;
-    user-select: none;
-  }
-  #fire-btn:active {
-    transform: translateX(-50%) translateY(3px);
-    box-shadow: 0 0 10px rgba(255,60,60,0.4), 0 1px 0 #880000;
+    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    letter-spacing: 1px;
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+    background: rgba(0,0,0,0.4);
+    padding: 4px 12px;
+    border-radius: 40px;
+    backdrop-filter: blur(2px);
   }
 
   /* Overlay screens */
@@ -123,7 +119,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(0,0,0,0.82);
+    background: rgba(0,0,0,0.85);
     border-radius: 14px;
     z-index: 30;
     gap: 18px;
@@ -165,19 +161,6 @@
     transition: transform 0.08s;
   }
   .overlay button:active { transform: translateY(3px); }
-
-  #drag-hint {
-    position: absolute;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255,255,255,0.35);
-    font-size: 12px;
-    letter-spacing: 1px;
-    z-index: 10;
-    pointer-events: none;
-    white-space: nowrap;
-  }
 </style>
 </head>
 <body>
@@ -191,14 +174,12 @@
     <div class="hud-box lives-box">❤️ <span id="lives-display">🐦🐦🐦🐦🐦</span></div>
   </div>
 
-  <div id="drag-hint">⟵ arrastra para girar ⟶</div>
-
-  <button id="fire-btn">💥 DISPARAR</button>
+  <div id="drag-hint">⟵ arrastra para girar | toca / espacio / clic ⇒ dispara ⟶</div>
 
   <!-- Start screen -->
   <div class="overlay" id="start-screen">
     <h1>🐦 CAÑÓN<br>ASESINO</h1>
-    <p>Arrastra para apuntar.<br>Pulsa DISPARAR para eliminar los pájaros.<br>¡No dejes pasar más de 5!</p>
+    <p>Arrastra para apuntar.<br>Toca en cualquier lado / Espacio / Click → Disparar.<br>¡No dejes pasar más de 5 pájaros!</p>
     <button id="start-btn">¡JUGAR!</button>
   </div>
 
@@ -212,6 +193,25 @@
 </div>
 
 <script>
+// ----- HELPER: roundRect (nativo no existe, lo añadimos)
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (w < 2 * r) r = w / 2;
+    if (h < 2 * r) r = h / 2;
+    this.moveTo(x+r, y);
+    this.lineTo(x+w-r, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+r);
+    this.lineTo(x+w, y+h-r);
+    this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    this.lineTo(x+r, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-r);
+    this.lineTo(x, y+r);
+    this.quadraticCurveTo(x, y, x+r, y);
+    this.closePath();
+    return this;
+  };
+}
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const wrapper = document.getElementById('game-wrapper');
@@ -238,8 +238,9 @@ let state = {
 };
 
 // --- STARS ---
-const stars = [];
+let stars = [];
 function generateStars() {
+  stars = [];
   for (let i = 0; i < 60; i++) {
     stars.push({
       x: Math.random() * canvas.width,
@@ -250,7 +251,7 @@ function generateStars() {
   }
 }
 
-// --- CANNON ---
+// --- CANNON (con cuerpo estilo tanque)---
 const CANNON_X = () => canvas.width / 2;
 const CANNON_Y = () => canvas.height - 100;
 const CANNON_LENGTH = 44;
@@ -260,8 +261,29 @@ function drawCannon() {
   const cx = CANNON_X(), cy = CANNON_Y();
   ctx.save();
   ctx.translate(cx, cy);
-
-  // Base wheel
+  
+  // 🚜 RECTÁNGULO BASE (cuerpo de tanque) del mismo color del cañón
+  ctx.fillStyle = '#555';
+  ctx.shadowBlur = 0;
+  ctx.beginPath();
+  ctx.roundRect(-34, 6, 68, 30, 12);
+  ctx.fill();
+  // Panel metálico oscuro para dar profundidad
+  ctx.fillStyle = '#3f3f3f';
+  ctx.beginPath();
+  ctx.roundRect(-30, 10, 60, 22, 8);
+  ctx.fill();
+  // Detalles tipo oruga / blindaje
+  ctx.fillStyle = '#2a2a2a';
+  ctx.fillRect(-26, 16, 52, 4);
+  ctx.fillStyle = '#777';
+  ctx.fillRect(-28, 12, 56, 2);
+  ctx.fillStyle = '#444';
+  for (let i = -20; i <= 20; i+=12) {
+    ctx.fillRect(i, 24, 6, 6);
+  }
+  
+  // Rueda base (oruga central)
   ctx.beginPath();
   ctx.arc(0, 0, 26, 0, Math.PI * 2);
   ctx.fillStyle = '#6b4226';
@@ -270,7 +292,7 @@ function drawCannon() {
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // Wheel spokes
+  // Radios de la rueda
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * Math.PI * 2;
     ctx.beginPath();
@@ -281,7 +303,7 @@ function drawCannon() {
     ctx.stroke();
   }
 
-  // Cannon barrel
+  // Cañón articulado (se gira)
   ctx.rotate(state.cannonAngle + Math.PI / 2);
   ctx.beginPath();
   ctx.roundRect(-CANNON_WIDTH / 2, -CANNON_LENGTH, CANNON_WIDTH, CANNON_LENGTH, 4);
@@ -291,12 +313,12 @@ function drawCannon() {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Barrel shine
+  // Brillo del cañón
   ctx.beginPath();
   ctx.roundRect(-CANNON_WIDTH / 2 + 2, -CANNON_LENGTH + 4, 4, CANNON_LENGTH - 8, 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
   ctx.fill();
-
+  
   ctx.restore();
 }
 
@@ -372,6 +394,7 @@ function drawBird(b) {
 
 // --- PROJECTILES ---
 function fireProjectile() {
+  if (!state.running) return;
   const cx = CANNON_X(), cy = CANNON_Y();
   const speed = 12;
   state.projectiles.push({
@@ -527,7 +550,7 @@ function update() {
     if (p.trail.length > 10) p.trail.shift();
     p.x += p.vx;
     p.y += p.vy;
-    p.vy += 0.15; // slight gravity
+    p.vy += 0.15; // gravity
     if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
       p.alive = false;
     }
@@ -569,56 +592,91 @@ function draw() {
   ctx.beginPath();
   ctx.moveTo(0, canvas.height - 60);
   ctx.lineTo(canvas.width, canvas.height - 60);
-  ctx.strokeStyle = 'rgba(255,80,80,0.3)';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(255,80,80,0.5)';
+  ctx.lineWidth = 2;
   ctx.setLineDash([8, 6]);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Danger zone label
   ctx.fillStyle = 'rgba(255,80,80,0.25)';
   ctx.font = '10px Fredoka One';
   ctx.fillText('⚠ ZONA PELIGRO', 8, canvas.height - 65);
 
   drawParticles();
-
   state.birds.forEach(b => drawBird(b));
   state.projectiles.forEach(p => drawProjectile(p));
   drawCannon();
 }
 
 // --- GAME LOOP ---
+let animationId = null;
 function gameLoop() {
   if (!state.running) return;
   update();
   draw();
-  requestAnimationFrame(gameLoop);
+  animationId = requestAnimationFrame(gameLoop);
 }
 
-// --- CONTROLS ---
-let dragStartX = null;
-let lastAngle = -Math.PI / 2;
+// --- CONTROL DE ARRASTRE + DISPARO POR TOQUE/CLIC (con umbral)---
+let dragData = {
+  active: false,
+  startX: 0,
+  startY: 0,
+  lastAngle: -Math.PI / 2,
+  hasMovedBeyondThreshold: false
+};
 
-canvas.addEventListener('pointerdown', e => {
-  dragStartX = e.clientX;
-  lastAngle = state.cannonAngle;
-});
-canvas.addEventListener('pointermove', e => {
-  if (dragStartX === null) return;
-  const dx = e.clientX - dragStartX;
-  state.cannonAngle = Math.max(-Math.PI + 0.1, Math.min(-0.1, lastAngle + dx * 0.012));
-});
-canvas.addEventListener('pointerup', () => { dragStartX = null; });
-
-document.getElementById('fire-btn').addEventListener('click', () => {
-  if (state.running) fireProjectile();
-});
-
-// Touch fire button
-document.getElementById('fire-btn').addEventListener('touchstart', e => {
+canvas.addEventListener('pointerdown', (e) => {
+  if (!state.running) return;
   e.preventDefault();
-  if (state.running) fireProjectile();
-}, { passive: false });
+  dragData.active = true;
+  dragData.startX = e.clientX;
+  dragData.startY = e.clientY;
+  dragData.lastAngle = state.cannonAngle;
+  dragData.hasMovedBeyondThreshold = false;
+  canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (!dragData.active || !state.running) return;
+  const dx = e.clientX - dragData.startX;
+  // Calcular movimiento total para el umbral de disparo
+  const moveDist = Math.hypot(e.clientX - dragData.startX, e.clientY - dragData.startY);
+  if (moveDist > 8) {
+    dragData.hasMovedBeyondThreshold = true;
+  }
+  // Rotación del cañón (sensible horizontal)
+  state.cannonAngle = Math.max(-Math.PI + 0.1, Math.min(-0.1, dragData.lastAngle + dx * 0.012));
+});
+
+canvas.addEventListener('pointerup', (e) => {
+  if (!dragData.active) return;
+  dragData.active = false;
+  if (!state.running) return;
+  
+  // Si NO hubo movimiento significativo (toque limpio o clic sin arrastre) → disparar
+  const moveDistance = Math.hypot(e.clientX - dragData.startX, e.clientY - dragData.startY);
+  if (moveDistance < 10 && !dragData.hasMovedBeyondThreshold) {
+    fireProjectile();
+  }
+  canvas.releasePointerCapture?.(e.pointerId);
+});
+
+// Disparo con tecla ESPACIO (PC)
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && state.running) {
+    e.preventDefault();
+    fireProjectile();
+  }
+});
+
+// También clic simple (por si el ratón no levanta pointerup con suficiente precisión, garantía)
+canvas.addEventListener('click', (e) => {
+  if (state.running && !dragData.active) {
+    // Para clicks directos sin arrastre previo (ratón sin mover) lo complementa
+    fireProjectile();
+  }
+});
 
 // --- UI ---
 function updateLives() {
@@ -628,6 +686,9 @@ function updateLives() {
 }
 
 function startGame() {
+  // Cancelar loop anterior si existe
+  if (animationId) cancelAnimationFrame(animationId);
+  
   state = {
     running: true,
     score: 0,
@@ -637,13 +698,22 @@ function startGame() {
     projectiles: [],
     particles: [],
     birdSpawnTimer: 0,
+    birdSpawnInterval: 120,
     frameCount: 0,
   };
   document.getElementById('score-display').textContent = '0';
   updateLives();
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('gameover-screen').style.display = 'none';
+  
+  // Regenerar estrellas con nuevo tamaño de canvas
   generateStars();
+  
+  // Reset drag state
+  dragData.active = false;
+  dragData.hasMovedBeyondThreshold = false;
+  
+  // Iniciar loop
   gameLoop();
 }
 
@@ -651,11 +721,29 @@ function endGame() {
   state.running = false;
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('gameover-screen').style.display = 'flex';
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
 }
 
+// Inicializar canvas y estrellas
+resizeCanvas();
+generateStars();
+
+// Listeners overlays
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
+
+// Ajuste responsive para resize
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  if (!state.running) generateStars();
+  else {
+    // Si está corriendo, solo regeneramos estrellas para que se ajusten visualmente
+    generateStars();
+  }
+});
 </script>
 </body>
 </html>
-
