@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,9 +6,7 @@
 <title>¡Cañón Asesino!</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Fredoka+One&display=swap');
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
     background: #1a0a2e;
     display: flex;
@@ -19,26 +16,21 @@
     height: 100vh;
     overflow: hidden;
     font-family: 'Fredoka One', cursive;
-    touch-action: none; /* Evita scroll/zoom táctil */
+    touch-action: none;
   }
-
   #game-wrapper {
     position: relative;
     width: 400px;
     height: 700px;
     max-width: 100vw;
     max-height: 100vh;
-    user-select: none;           /* Evita selección de texto global */
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
   }
-
-  #game-wrapper * {
+  /* Prevenir selección en iOS (arrastre) */
+  #game-wrapper, #game-wrapper * {
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
   }
-
   #sky {
     position: absolute;
     inset: 0;
@@ -47,7 +39,6 @@
     overflow: hidden;
     border: 2px solid #4a2080;
   }
-
   canvas {
     position: absolute;
     inset: 0;
@@ -61,11 +52,6 @@
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
-  canvas:active {
-    cursor: grabbing;
-  }
-
-  /* HUD */
   #hud {
     position: absolute;
     top: 12px;
@@ -77,7 +63,6 @@
     z-index: 10;
     pointer-events: none;
   }
-
   .hud-box {
     background: rgba(0,0,0,0.5);
     border: 1.5px solid rgba(255,255,255,0.15);
@@ -87,35 +72,19 @@
     font-size: 15px;
     letter-spacing: 1px;
   }
-
-  .hud-box span {
-    color: #f9c74f;
-  }
-
-  .lives-box span.lost {
-    opacity: 0.2;
-  }
-
+  .hud-box span { color: #f9c74f; }
   #drag-hint {
     position: absolute;
-    bottom: 20px;
+    bottom: 18px;
     left: 50%;
     transform: translateX(-50%);
-    color: rgba(255,255,255,0.45);
-    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    font-size: 12px;
     letter-spacing: 1px;
     z-index: 10;
     pointer-events: none;
     white-space: nowrap;
-    background: rgba(0,0,0,0.4);
-    padding: 4px 12px;
-    border-radius: 40px;
-    backdrop-filter: blur(2px);
-    user-select: none;
-    -webkit-user-select: none;
   }
-
-  /* Overlay screens */
   .overlay {
     position: absolute;
     inset: 0;
@@ -123,12 +92,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.82);
     border-radius: 14px;
     z-index: 30;
     gap: 18px;
   }
-
   .overlay h1 {
     font-family: 'Boogaloo', cursive;
     font-size: 52px;
@@ -137,7 +105,6 @@
     text-align: center;
     line-height: 1;
   }
-
   .overlay p {
     color: #ccc;
     font-size: 18px;
@@ -145,13 +112,11 @@
     max-width: 280px;
     line-height: 1.4;
   }
-
   .overlay .score-big {
     font-size: 64px;
     color: #90e0ef;
     text-shadow: 0 0 20px rgba(144,224,239,0.8);
   }
-
   .overlay button {
     background: linear-gradient(135deg, #43aa8b, #2d7a62);
     border: none;
@@ -168,26 +133,19 @@
 </style>
 </head>
 <body>
-
 <div id="game-wrapper">
   <div id="sky"></div>
   <canvas id="gameCanvas"></canvas>
-
   <div id="hud">
     <div class="hud-box">🏆 <span id="score-display">0</span></div>
-    <div class="hud-box lives-box">❤️ <span id="lives-display">🐦🐦🐦🐦🐦</span></div>
+    <div class="hud-box">❤️ <span id="lives-display">🐦🐦🐦🐦🐦</span></div>
   </div>
-
-  <div id="drag-hint">⟵ arrastra para girar | toca / espacio / clic ⇒ dispara ⟶</div>
-
-  <!-- Start screen -->
+  <div id="drag-hint">⟵ arrastra para apuntar · toca/espacio para disparar ⟶</div>
   <div class="overlay" id="start-screen">
     <h1>🐦 CAÑÓN<br>ASESINO</h1>
-    <p>Arrastra para apuntar.<br>Toca en cualquier lado / Espacio / Click → Disparar.<br>¡No dejes pasar más de 5 pájaros!</p>
+    <p>Arrastra para apuntar.<br>Toca la pantalla o pulsa ESPACIO para disparar.<br>¡No dejes pasar más de 5!</p>
     <button id="start-btn">¡JUGAR!</button>
   </div>
-
-  <!-- Game over screen -->
   <div class="overlay" id="gameover-screen" style="display:none">
     <h1>💀 FIN</h1>
     <p>Puntuación final:</p>
@@ -197,25 +155,6 @@
 </div>
 
 <script>
-// ----- HELPER: roundRect
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-    if (w < 2 * r) r = w / 2;
-    if (h < 2 * r) r = h / 2;
-    this.moveTo(x+r, y);
-    this.lineTo(x+w-r, y);
-    this.quadraticCurveTo(x+w, y, x+w, y+r);
-    this.lineTo(x+w, y+h-r);
-    this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-    this.lineTo(x+r, y+h);
-    this.quadraticCurveTo(x, y+h, x, y+h-r);
-    this.lineTo(x, y+r);
-    this.quadraticCurveTo(x, y, x+r, y);
-    this.closePath();
-    return this;
-  };
-}
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const wrapper = document.getElementById('game-wrapper');
@@ -226,7 +165,6 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// --- GAME STATE ---
 let state = {
   running: false,
   score: 0,
@@ -236,13 +174,12 @@ let state = {
   projectiles: [],
   particles: [],
   birdSpawnTimer: 0,
-  birdSpawnInterval: 120,
+  frameCount: 0,
 };
 
-// --- STARS ---
-let stars = [];
+const stars = [];
 function generateStars() {
-  stars = [];
+  stars.length = 0;
   for (let i = 0; i < 60; i++) {
     stars.push({
       x: Math.random() * canvas.width,
@@ -253,70 +190,116 @@ function generateStars() {
   }
 }
 
-// --- CANNON (con cuerpo estilo tanque)---
 const CANNON_X = () => canvas.width / 2;
-const CANNON_Y = () => canvas.height - 100;
+const CANNON_Y = () => canvas.height - 110;
 const CANNON_LENGTH = 44;
 const CANNON_WIDTH = 16;
+
+const TANK_W = 80;
+const TANK_H = 32;
+const TANK_TRACK_H = 12;
 
 function drawCannon() {
   const cx = CANNON_X(), cy = CANNON_Y();
   ctx.save();
   ctx.translate(cx, cy);
-  
-  // 🚜 RECTÁNGULO BASE (cuerpo de tanque) del mismo color del cañón
-  ctx.fillStyle = '#555';
-  ctx.shadowBlur = 0;
+
+  // Oruga / base
   ctx.beginPath();
-  ctx.roundRect(-34, 6, 68, 30, 12);
+  ctx.roundRect(-TANK_W / 2, 14, TANK_W, TANK_TRACK_H, 4);
+  ctx.fillStyle = '#3a3a3a';
   ctx.fill();
-  ctx.fillStyle = '#3f3f3f';
-  ctx.beginPath();
-  ctx.roundRect(-30, 10, 60, 22, 8);
-  ctx.fill();
-  ctx.fillStyle = '#2a2a2a';
-  ctx.fillRect(-26, 16, 52, 4);
-  ctx.fillStyle = '#777';
-  ctx.fillRect(-28, 12, 56, 2);
-  ctx.fillStyle = '#444';
-  for (let i = -20; i <= 20; i+=12) {
-    ctx.fillRect(i, 24, 6, 6);
-  }
-  
-  // Rueda base
-  ctx.beginPath();
-  ctx.arc(0, 0, 26, 0, Math.PI * 2);
-  ctx.fillStyle = '#6b4226';
-  ctx.fill();
-  ctx.strokeStyle = '#3d2010';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  // Segmentos oruga
   for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2;
+    const tx = -TANK_W / 2 + 4 + i * 13;
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(Math.cos(a) * 22, Math.sin(a) * 22);
+    ctx.roundRect(tx, 16, 10, TANK_TRACK_H - 4, 2);
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fill();
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 0.8;
     ctx.stroke();
   }
 
-  // Cañón
+  // Torreta / cuerpo superior
+  ctx.beginPath();
+  ctx.roundRect(-TANK_W / 2 + 6, 2, TANK_W - 12, 16, 3);
+  ctx.fillStyle = '#555';
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Reflejo torreta
+  ctx.beginPath();
+  ctx.roundRect(-TANK_W / 2 + 10, 4, TANK_W - 30, 5, 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.07)';
+  ctx.fill();
+
+  // Ruedas laterales
+  [-TANK_W / 2 + 8, TANK_W / 2 - 8].forEach(wx => {
+    ctx.beginPath();
+    ctx.arc(wx, 20, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#444';
+    ctx.fill();
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(wx, 20, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#333';
+    ctx.fill();
+  });
+
+  // Pivote central
+  ctx.beginPath();
+  ctx.arc(0, 0, 14, 0, Math.PI * 2);
+  ctx.fillStyle = '#555';
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Cañón rotativo
   ctx.rotate(state.cannonAngle + Math.PI / 2);
+
+  // Culata
+  ctx.beginPath();
+  ctx.roundRect(-CANNON_WIDTH / 2 - 1, -6, CANNON_WIDTH + 2, 12, 3);
+  ctx.fillStyle = '#555';
+  ctx.fill();
+
+  // Tubo
   ctx.beginPath();
   ctx.roundRect(-CANNON_WIDTH / 2, -CANNON_LENGTH, CANNON_WIDTH, CANNON_LENGTH, 4);
   ctx.fillStyle = '#555';
   ctx.fill();
-  ctx.strokeStyle = '#222';
+  ctx.strokeStyle = '#333';
   ctx.lineWidth = 2;
   ctx.stroke();
+
+  // Boca del cañón
+  ctx.beginPath();
+  ctx.roundRect(-CANNON_WIDTH / 2 - 2, -CANNON_LENGTH, CANNON_WIDTH + 4, 8, 3);
+  ctx.fillStyle = '#444';
+  ctx.fill();
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Brillo tubo
   ctx.beginPath();
   ctx.roundRect(-CANNON_WIDTH / 2 + 2, -CANNON_LENGTH + 4, 4, CANNON_LENGTH - 8, 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.fill();
-  
+
   ctx.restore();
 }
 
-// --- BIRDS ---
 const BIRD_COLORS = ['#ff9f1c', '#e63946', '#a8dadc', '#06d6a0', '#f72585'];
 
 function spawnBird() {
@@ -341,6 +324,7 @@ function drawBird(b) {
   ctx.fillStyle = b.color;
   ctx.fill();
   ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx.lineWidth = 1;
   ctx.stroke();
   ctx.save();
   ctx.rotate(-wing);
@@ -353,6 +337,7 @@ function drawBird(b) {
   ctx.rotate(wing);
   ctx.beginPath();
   ctx.ellipse(b.size * 0.6, -b.size * 0.1, b.size * 0.55, b.size * 0.22, 0.3, 0, Math.PI * 2);
+  ctx.fillStyle = b.color;
   ctx.fill();
   ctx.restore();
   ctx.beginPath();
@@ -372,9 +357,7 @@ function drawBird(b) {
   ctx.restore();
 }
 
-// --- PROJECTILES ---
 function fireProjectile() {
-  if (!state.running) return;
   const cx = CANNON_X(), cy = CANNON_Y();
   const speed = 12;
   state.projectiles.push({
@@ -423,17 +406,11 @@ function spawnExplosion(x, y, color) {
   for (let i = 0; i < 22; i++) {
     const a = Math.random() * Math.PI * 2;
     const sp = 1.5 + Math.random() * 6;
-    state.particles.push({
-      x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-      life: 1, decay: 0.03 + Math.random() * 0.05, color, size: 3 + Math.random() * 6,
-    });
+    state.particles.push({ x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, life: 1, decay: 0.03+Math.random()*0.05, color, size: 3+Math.random()*6 });
   }
   for (let i = 0; i < 8; i++) {
     const a = Math.random() * Math.PI * 2;
-    state.particles.push({
-      x, y, vx: Math.cos(a) * (1 + Math.random() * 3), vy: Math.sin(a) * (1 + Math.random() * 3) + 1,
-      life: 1, decay: 0.02, color: 'white', size: 1 + Math.random() * 3, isFeather: true,
-    });
+    state.particles.push({ x, y, vx: Math.cos(a)*(1+Math.random()*3), vy: Math.sin(a)*(1+Math.random()*3)+1, life: 1, decay: 0.02, color: 'white', size: 1+Math.random()*3, isFeather: true });
   }
 }
 
@@ -443,9 +420,9 @@ function drawParticles() {
     ctx.globalAlpha = p.life;
     ctx.beginPath();
     if (p.isFeather) {
-      ctx.ellipse(p.x, p.y, p.size * 2, p.size * 0.5, Math.atan2(p.vy, p.vx), 0, Math.PI * 2);
+      ctx.ellipse(p.x, p.y, p.size*2, p.size*0.5, Math.atan2(p.vy, p.vx), 0, Math.PI*2);
     } else {
-      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.size*p.life, 0, Math.PI*2);
     }
     ctx.fillStyle = p.color;
     ctx.fill();
@@ -459,8 +436,7 @@ function checkCollisions() {
     state.birds.forEach(bird => {
       if (!bird.alive) return;
       const dx = proj.x - bird.x, dy = proj.y - bird.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < bird.size + 6) {
+      if (Math.sqrt(dx*dx+dy*dy) < bird.size + 6) {
         proj.alive = false;
         bird.alive = false;
         state.score++;
@@ -472,17 +448,13 @@ function checkCollisions() {
 }
 
 function update() {
+  state.frameCount++;
   state.birdSpawnTimer++;
   const interval = Math.max(50, 120 - Math.floor(state.score / 5) * 8);
-  if (state.birdSpawnTimer >= interval) {
-    spawnBird();
-    state.birdSpawnTimer = 0;
-  }
+  if (state.birdSpawnTimer >= interval) { spawnBird(); state.birdSpawnTimer = 0; }
   state.birds.forEach(b => {
     if (!b.alive) return;
-    b.x += b.vx;
-    b.y += b.vy;
-    b.wingPhase += 0.15;
+    b.x += b.vx; b.y += b.vy; b.wingPhase += 0.15;
     if (b.x < 10 || b.x > canvas.width - 10) b.vx *= -1;
   });
   state.birds.forEach(b => {
@@ -495,21 +467,13 @@ function update() {
   });
   state.projectiles.forEach(p => {
     if (!p.alive) return;
-    p.trail.push({x:p.x, y:p.y});
+    p.trail.push({ x: p.x, y: p.y });
     if (p.trail.length > 10) p.trail.shift();
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.15;
+    p.x += p.vx; p.y += p.vy; p.vy += 0.15;
     if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) p.alive = false;
   });
   checkCollisions();
-  state.particles.forEach(p => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.1;
-    p.vx *= 0.97;
-    p.life -= p.decay;
-  });
+  state.particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.vx*=0.97; p.life-=p.decay; });
   state.birds = state.birds.filter(b => b.alive);
   state.projectiles = state.projectiles.filter(p => p.alive);
   state.particles = state.particles.filter(p => p.life > 0);
@@ -528,9 +492,9 @@ function draw() {
   ctx.beginPath();
   ctx.moveTo(0, canvas.height - 60);
   ctx.lineTo(canvas.width, canvas.height - 60);
-  ctx.strokeStyle = 'rgba(255,80,80,0.5)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([8,6]);
+  ctx.strokeStyle = 'rgba(255,80,80,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([8, 6]);
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(255,80,80,0.25)';
@@ -542,65 +506,46 @@ function draw() {
   drawCannon();
 }
 
-let animationId = null;
 function gameLoop() {
   if (!state.running) return;
   update();
   draw();
-  animationId = requestAnimationFrame(gameLoop);
+  requestAnimationFrame(gameLoop);
 }
 
-// --- CONTROL DE ARRASTRE + DISPARO SIN SELECCIÓN AZUL ---
-let dragData = {
-  active: false,
-  startX: 0,
-  startY: 0,
-  lastAngle: -Math.PI / 2,
-  hasMovedBeyondThreshold: false
-};
+// --- CONTROLES con prevención de selección en iOS ---
+let dragStartX = null, lastAngle = -Math.PI / 2, isDragging = false;
 
 canvas.addEventListener('pointerdown', (e) => {
-  if (!state.running) return;
-  e.preventDefault();          // Evita selección azul
-  dragData.active = true;
-  dragData.startX = e.clientX;
-  dragData.startY = e.clientY;
-  dragData.lastAngle = state.cannonAngle;
-  dragData.hasMovedBeyondThreshold = false;
-  canvas.setPointerCapture(e.pointerId);
-});
+  e.preventDefault();   // ← previene selección nativa en iOS
+  dragStartX = e.clientX;
+  lastAngle = state.cannonAngle;
+  isDragging = false;
+}, { passive: false });
 
 canvas.addEventListener('pointermove', (e) => {
-  if (!dragData.active || !state.running) return;
-  e.preventDefault();          // Clave para evitar selección en iOS
-  const dx = e.clientX - dragData.startX;
-  const moveDist = Math.hypot(e.clientX - dragData.startX, e.clientY - dragData.startY);
-  if (moveDist > 8) dragData.hasMovedBeyondThreshold = true;
-  state.cannonAngle = Math.max(-Math.PI + 0.1, Math.min(-0.1, dragData.lastAngle + dx * 0.012));
+  e.preventDefault();   // ← clave para iOS
+  if (dragStartX === null) return;
+  const dx = e.clientX - dragStartX;
+  if (Math.abs(dx) > 5) isDragging = true;
+  state.cannonAngle = Math.max(-Math.PI + 0.1, Math.min(-0.1, lastAngle + dx * 0.012));
 }, { passive: false });
 
 canvas.addEventListener('pointerup', (e) => {
-  if (!dragData.active) return;
-  dragData.active = false;
-  if (!state.running) return;
-  const moveDistance = Math.hypot(e.clientX - dragData.startX, e.clientY - dragData.startY);
-  if (moveDistance < 10 && !dragData.hasMovedBeyondThreshold) {
-    fireProjectile();
-  }
-  canvas.releasePointerCapture?.(e.pointerId);
-});
+  e.preventDefault();
+  if (!isDragging && state.running) fireProjectile();
+  dragStartX = null;
+  isDragging = false;
+}, { passive: false });
 
-window.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', e => {
   if (e.code === 'Space' && state.running) {
     e.preventDefault();
     fireProjectile();
   }
 });
 
-canvas.addEventListener('click', (e) => {
-  if (state.running && !dragData.active) fireProjectile();
-});
-
+// --- UI ---
 function updateLives() {
   const full = '🐦'.repeat(Math.max(0, 5 - state.escaped));
   const empty = '💀'.repeat(state.escaped);
@@ -608,24 +553,12 @@ function updateLives() {
 }
 
 function startGame() {
-  if (animationId) cancelAnimationFrame(animationId);
-  state = {
-    running: true,
-    score: 0,
-    escaped: 0,
-    cannonAngle: -Math.PI / 2,
-    birds: [],
-    projectiles: [],
-    particles: [],
-    birdSpawnTimer: 0,
-    birdSpawnInterval: 120,
-  };
+  state = { running: true, score: 0, escaped: 0, cannonAngle: -Math.PI/2, birds: [], projectiles: [], particles: [], birdSpawnTimer: 0, frameCount: 0 };
   document.getElementById('score-display').textContent = '0';
   updateLives();
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('gameover-screen').style.display = 'none';
   generateStars();
-  dragData.active = false;
   gameLoop();
 }
 
@@ -633,20 +566,10 @@ function endGame() {
   state.running = false;
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('gameover-screen').style.display = 'flex';
-  if (animationId) cancelAnimationFrame(animationId);
-  animationId = null;
 }
 
-// Inicialización
-resizeCanvas();
-generateStars();
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
-window.addEventListener('resize', () => {
-  resizeCanvas();
-  if (!state.running) generateStars();
-  else generateStars();
-});
 </script>
 </body>
 </html>
